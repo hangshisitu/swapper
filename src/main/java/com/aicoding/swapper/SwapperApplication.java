@@ -35,34 +35,32 @@ public class SwapperApplication implements CommandLineRunner {
 	@Autowired
 	GraphQLWebClient graphQLWebClient;
 
+	@Autowired
+	GraphQlUtils graphQlUtils;
+
 	@Override
 	public void run(String... args) throws Exception {
 		List<Pair> pairs = queryAllPairs();
 		log.info("pairs size {}",pairs.size());
-		Set<BigInteger> tokens = new HashSet<>(pairs.size()*2);
-		pairs.stream().forEach(p ->{
-			tokens.add(HexUtil.toBigInteger(p.getToken0().getId().substring(2)));
-			tokens.add(HexUtil.toBigInteger(p.getToken0().getId().substring(2)));
-		});
-		List<BigInteger> tokenList = tokens.stream().collect(Collectors.toList());
-		Collections.sort(tokenList);
-		Boolean[][] nodeGraph = new Boolean[tokenList.size()][tokenList.size()];
-		Map<BigInteger,Integer> token2Index = new HashMap<>(tokenList.size());
-		for (int i=0;i<tokenList.size();++i)
-		{
-			token2Index.put(tokenList.get(i),i);
-		}
-		pairs.stream().forEach(p -> {
-			int i= token2Index.get(HexUtil.toBigInteger(p.getToken0().getId().substring(2)));
-			int j = token2Index.get(HexUtil.toBigInteger(p.getToken1().getId().substring(2)));
-			nodeGraph[i][j] = true;
-			nodeGraph[j][i] = true;
-		});
-
-
+		Graph graph = new Graph(pairs);
+		log.info("has ring: {}",graph.hasRing());
 	}
 
 	private List<Pair> queryAllPairs()
+	{
+		List<Pair> result = new ArrayList<>();
+		Cursor cursor = new Cursor(0);
+		do{
+			log.info("size:{} cursor:{}",result.size(),cursor);
+			PairsDto dto = graphQlUtils.graphQLQuery("pairs.graphql",cursor,PairsDto.class);
+			result.addAll(dto.getPairs());
+			cursor.setSkip(cursor.getSkip()+dto.getPairs().size());
+		}while(cursor.getSkip()<=5000);
+
+		return result;
+	}
+
+	private List<Pair> queryAllPairs2()
 	{
 		List<Pair> result = new ArrayList<>();
 		Cursor cursor = new Cursor(0);
@@ -70,7 +68,6 @@ public class SwapperApplication implements CommandLineRunner {
 				.resource("pairs.graphql")
 				.variables(cursor)
 				.build();
-
 		do{
 			log.info("size:{} cursor:{}",result.size(),cursor);
 			Mono<GraphQLResponse> responseMono =  graphQLWebClient.post(graphqlRequest);

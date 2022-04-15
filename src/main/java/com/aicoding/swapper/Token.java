@@ -1,7 +1,10 @@
 package com.aicoding.swapper;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.ToString;
+
+import java.util.Objects;
 
 /**
  * erc20 token
@@ -17,4 +20,21 @@ public class Token {
     private String id;
     private String symbol;
     private String name;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Token token = (Token) o;
+        return id.equals(token.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
 }
