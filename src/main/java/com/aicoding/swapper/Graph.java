@@ -1,15 +1,13 @@
 package com.aicoding.swapper;
 
+import javafx.util.Pair;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.ObjectUtils;
 
-import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -42,7 +40,7 @@ public class Graph {
     @ToString
     @AllArgsConstructor
     public static class Edge{
-        private Pair pair;
+        private SPair SPair;
         private Long weight;
     }
 
@@ -50,13 +48,13 @@ public class Graph {
 
     private Edge[][] edges;
 
-    public Graph(List<Pair> pairList)
+    public Graph(List<SPair> SPairList)
     {
-        Set<Token> temp = new HashSet<>(pairList.size()*2);
-        for (int i=0;i<pairList.size();++i)
+        Set<Token> temp = new HashSet<>(SPairList.size()*2);
+        for (int i = 0; i< SPairList.size(); ++i)
         {
-            Token token0 = pairList.get(i).getToken0();
-            Token token1 = pairList.get(i).getToken0();
+            Token token0 = SPairList.get(i).getToken0();
+            Token token1 = SPairList.get(i).getToken1();
             temp.add(token0);
             temp.add(token1);
         }
@@ -67,7 +65,7 @@ public class Graph {
             id2Index.put(vertices[i].getToken().getId(),i);
         }
         edges = new Edge[vertices.length][vertices.length];
-        pairList.forEach(p -> {
+        SPairList.forEach(p -> {
             if(!id2Index.containsKey(p.getToken0().getId()) ||
             !id2Index.containsKey(p.getToken1().getId()))
             {
@@ -80,6 +78,21 @@ public class Graph {
         });
     }
 
+    public float fullRate()
+    {
+        Long nullCount=0L;
+        for (int i=0;i<edges.length;++i)
+        {
+            for (int j=0;j<edges.length;++j)
+            {
+                if(ObjectUtils.isEmpty(edges[i][j]))
+                {
+                    nullCount +=1;
+                }
+            }
+        }
+        return nullCount/(edges.length*edges.length);
+    }
     public Boolean hasRing()
     {
         for(int i=0;i<edges.length;++i)
@@ -88,10 +101,29 @@ public class Graph {
             Set<Integer> visited = new HashSet<>();
             if(hasRingDfs(i,path,-1,visited))
             {
+                log.info("ring: {}",path);
                 return true;
             }
         }
         return false;
+    }
+
+    public List<List<String>> rings()
+    {
+        List<List<Pair<Integer,Integer>>> result= new LinkedList<>();
+        for(int i=0;i<vertices.length;++i)
+        {
+            List<Pair<Integer,Integer>> path = new ArrayList<>();
+            Set<Integer> visited = new HashSet<>();
+            visited.add(i);
+            ringDfs(i,i,path,-1,visited,result);
+        }
+        return result.stream().map(l -> {
+            return l.stream().map(p -> {
+                return String.format("%s->%s",vertices[p.getKey()].getToken().getSymbol(),
+                        vertices[p.getValue()].getToken().getSymbol());
+            }).collect(Collectors.toList());
+        }).collect(Collectors.toList());
     }
 
     private boolean hasRingDfs(Integer depth, List<String> path, Integer pre, Set<Integer> visited)
@@ -109,12 +141,14 @@ public class Graph {
                         return true;
                     }else
                     {   //无环
-                        path.add(vertices[i].getToken().getId());
+                        visited.add(i);
+                        path.add(vertices[i].getToken().getSymbol());
                         if(hasRingDfs(i,path,depth,visited))
                         {
                             return true;
                         }
-                        path.remove(vertices[i].getToken().getId());
+                        visited.remove(i);
+                        path.remove(vertices[i].getToken().getSymbol());
                     }
                 }
             }
@@ -122,6 +156,42 @@ public class Graph {
         return false;
     }
 
+    private void ringDfs(Integer depth,
+                         Integer start,
+                         List<Pair<Integer,Integer>> path,
+                         Integer pre,
+                         Set<Integer> visited,
+                         List<List<Pair<Integer,Integer>>> result)
+    {
+        for(Integer i=0;i<edges.length;++i)
+        {
+            //不是刚出发的节点
+            if(pre.equals(-1) || !i.equals(pre))
+            {
+                if(!ObjectUtils.isEmpty(edges[depth][i]))
+                {
+                    if(visited.contains(i))
+                    {
+                        if(start.equals(i))
+                        {
+                            log.info("a ring {}",path);
+                            result.add(path);
+                            //跳过这条边继续遍历
+                        }
+                        //跳过这条边继续遍历
+                    }else
+                    {   //无环
+                        visited.add(i);
+                        Pair<Integer,Integer> temp = new Pair<>(depth,i);
+                        path.add(temp);
+                        ringDfs(i,start,path,depth,visited,result);
+                        visited.remove(i);
+                        path.remove(temp);
+                    }
+                }
+            }
+        }
+    }
     /**
      * 假设无环, 深度优先遍历
      * @param depth

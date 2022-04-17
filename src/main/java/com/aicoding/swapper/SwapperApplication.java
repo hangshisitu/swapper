@@ -1,28 +1,18 @@
 package com.aicoding.swapper;
 
-import cn.hutool.core.util.HexUtil;
-import com.alibaba.fastjson.JSONObject;
 import graphql.kickstart.spring.webclient.boot.GraphQLRequest;
 import graphql.kickstart.spring.webclient.boot.GraphQLResponse;
 import graphql.kickstart.spring.webclient.boot.GraphQLWebClient;
 import lombok.extern.slf4j.Slf4j;
-import okhttp3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.http.HttpEntity;
 //import org.springframework.http.HttpHeaders;
 //import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 import reactor.core.publisher.Mono;
 
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @SpringBootApplication
 @Slf4j
@@ -40,15 +30,17 @@ public class SwapperApplication implements CommandLineRunner {
 
 	@Override
 	public void run(String... args) throws Exception {
-		List<Pair> pairs = queryAllPairs();
-		log.info("pairs size {}",pairs.size());
-		Graph graph = new Graph(pairs);
-		log.info("has ring: {}",graph.hasRing());
+		List<SPair> SPairs = queryAllPairs();
+		log.info("pairs size {}", SPairs.size());
+		Graph graph = new Graph(SPairs);
+//		log.info("has ring: {}",graph.hasRing());
+//		log.info("rings: {}",graph.rings());
+		log.info("fullRate:{}",graph.fullRate());
 	}
 
-	private List<Pair> queryAllPairs()
+	private List<SPair> queryAllPairs()
 	{
-		List<Pair> result = new ArrayList<>();
+		List<SPair> result = new ArrayList<>();
 		Cursor cursor = new Cursor(0);
 		do{
 			log.info("size:{} cursor:{}",result.size(),cursor);
@@ -60,9 +52,9 @@ public class SwapperApplication implements CommandLineRunner {
 		return result;
 	}
 
-	private List<Pair> queryAllPairs2()
+	private List<SPair> queryAllPairs2()
 	{
-		List<Pair> result = new ArrayList<>();
+		List<SPair> result = new ArrayList<>();
 		Cursor cursor = new Cursor(0);
 		GraphQLRequest graphqlRequest = GraphQLRequest.builder()
 				.resource("pairs.graphql")
@@ -78,7 +70,7 @@ public class SwapperApplication implements CommandLineRunner {
 				log.error("exception： {}",e);
 				return result;
 			}
-			List<Pair> temp = responseMono.block().getFirstList(Pair.class);
+			List<SPair> temp = responseMono.block().getFirstList(SPair.class);
 			result.addAll(temp);
 			cursor.setSkip(cursor.getSkip()+temp.size());
 		}while(cursor.getSkip()<=5000);

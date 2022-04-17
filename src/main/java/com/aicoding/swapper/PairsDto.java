@@ -14,5 +14,5 @@ import java.util.List;
 @Data
 @ToString
 public class PairsDto {
-    private List<Pair> pairs;
+    private List<SPair> pairs;
 }

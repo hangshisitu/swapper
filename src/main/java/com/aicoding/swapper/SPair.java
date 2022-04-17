@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 @Data
 @ToString
 @EqualsAndHashCode
-public class Pair {
+public class SPair {
     private String id;
     private Token token0;
     private Token token1;

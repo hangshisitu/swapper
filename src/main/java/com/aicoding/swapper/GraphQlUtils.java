@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.springframework.stereotype.Component;
 
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -21,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 public class GraphQlUtils {
 
     private static OkHttpClient okHttpClient = new OkHttpClient().newBuilder()
+            .proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 11000)))
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(65, TimeUnit.SECONDS)
