@@ -51,7 +51,7 @@ public class GraphQlUtils {
             Response response = okHttpClient.newCall(request).execute();
             if (response.isSuccessful()) {
                 String text = response.body().string();
-                log.info("crawl response body {}",text);
+                log.info("response body {}",text);
                 return JSONObject.parseObject(text).getJSONObject("data").toJavaObject(clazz);
             }
             log.error("接口失败 resp {}",response);

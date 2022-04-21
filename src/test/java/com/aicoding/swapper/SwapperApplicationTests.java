@@ -5,6 +5,7 @@ import lombok.ToString;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.math.BigDecimal;
 import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.URI;
@@ -30,5 +31,11 @@ class SwapperApplicationTests {
 		List<Proxy> proxyList = ProxySelector.getDefault().select(uri);
 		System.out.println(proxyList.get(0).address());
 		System.out.println(proxyList.get(0).type());
+	}
+
+	@Test
+	void TestAmount()
+	{
+		System.out.println(SPair.getAmountIn(BigDecimal.valueOf(0.005),BigDecimal.valueOf(0.1),BigDecimal.valueOf(0.2)));
 	}
 }

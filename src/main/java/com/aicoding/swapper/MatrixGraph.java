@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 图
+ * 邻接矩阵图
  *
  * @Date: 2022/4/15 12:09
  * @Author: qiaojun.xiao
@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @ToString
 @AllArgsConstructor
 @Slf4j
-public class Graph {
+public class MatrixGraph {
     /**
      * 顶点
      */
@@ -48,7 +48,7 @@ public class Graph {
 
     private Edge[][] edges;
 
-    public Graph(List<SPair> SPairList)
+    public MatrixGraph(List<SPair> SPairList)
     {
         Set<Token> temp = new HashSet<>(SPairList.size()*2);
         for (int i = 0; i< SPairList.size(); ++i)
@@ -78,14 +78,14 @@ public class Graph {
         });
     }
 
-    public float fullRate()
+    public double fullRate()
     {
-        Long nullCount=0L;
+        double nullCount=0.0;
         for (int i=0;i<edges.length;++i)
         {
             for (int j=0;j<edges.length;++j)
             {
-                if(ObjectUtils.isEmpty(edges[i][j]))
+                if(!ObjectUtils.isEmpty(edges[i][j]))
                 {
                     nullCount +=1;
                 }
@@ -93,6 +93,7 @@ public class Graph {
         }
         return nullCount/(edges.length*edges.length);
     }
+
     public Boolean hasRing()
     {
         for(int i=0;i<edges.length;++i)
@@ -191,28 +192,5 @@ public class Graph {
                 }
             }
         }
-    }
-    /**
-     * 假设无环, 深度优先遍历
-     * @param depth
-     * @param path
-     * @param pre
-     */
-    private void dfs(Integer depth, List<String> path,Integer pre, List<List<String>> result)
-    {
-        for(Integer i=0;i<edges.length;++i)
-        {
-            //不是刚出发的节点
-            if(!i.equals(pre))
-            {
-                if(!ObjectUtils.isEmpty(edges[depth][i]))
-                {
-                    path.add(vertices[i].getToken().getSymbol());
-                    dfs(i,path,depth,result);
-                    path.remove(vertices[i].getToken().getSymbol());
-                }
-            }
-        }
-        result.add(path);
     }
 }
