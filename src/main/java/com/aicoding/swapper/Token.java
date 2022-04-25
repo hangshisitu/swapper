@@ -4,6 +4,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Objects;
 
 /**
@@ -20,6 +22,8 @@ public class Token {
     private String id;
     private String symbol;
     private String name;
+    private Integer decimals;
+    private BigDecimal  derivedETH;
 
     @Override
     public boolean equals(Object o) {
@@ -38,4 +42,8 @@ public class Token {
         return id.hashCode();
     }
 
+    public BigDecimal value(BigInteger v)
+    {
+        return new BigDecimal(v).divide(BigDecimal.valueOf(10).pow(decimals),decimals,BigDecimal.ROUND_DOWN);
+    }
 }

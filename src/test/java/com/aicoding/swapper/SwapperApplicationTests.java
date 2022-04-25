@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.URI;
@@ -36,6 +37,15 @@ class SwapperApplicationTests {
 	@Test
 	void TestAmount()
 	{
-		System.out.println(SPair.getAmountIn(BigDecimal.valueOf(0.005),BigDecimal.valueOf(0.1),BigDecimal.valueOf(0.2)));
+		System.out.println(new BigInteger("2007734677294003221625410").equals(
+				new BigDecimal("2007734.67729400322162541").multiply(BigDecimal.valueOf(10L).pow(18)).toBigInteger()));
+//		System.out.println(SPair.getAmountIn(BigDecimal.valueOf(0.005),BigDecimal.valueOf(0.1),BigDecimal.valueOf(0.2)));
 	}
+
+	@Test
+	void testSqrt()
+	{
+		System.out.println(Utils.sqrt(BigInteger.valueOf(110)));
+	}
+
 }

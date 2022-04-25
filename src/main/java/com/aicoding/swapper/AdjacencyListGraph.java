@@ -23,15 +23,6 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Slf4j
 public class AdjacencyListGraph {
-    /**
-     * 顶点
-     */
-    @Data
-    @ToString
-    @AllArgsConstructor
-    public static class Vertex{
-        private Token token;
-    }
 
     /**
      * 边

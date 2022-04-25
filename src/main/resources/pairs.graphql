@@ -1,17 +1,23 @@
 query pairs($skip: Int!) {
 pairs(first: 1000, skip: $skip) {
-    id,
+    id
   token0{
-    id,
-    symbol,
+    id
+    symbol
     name
+    decimals
+    derivedETH
   }
   token1{
-    id,
-    symbol,
+    id
+    symbol
     name
+    decimals
+    derivedETH
   }
-  reserve0,
+  reserve0
   reserve1
+  token0Price
+  token1Price
 }
 }

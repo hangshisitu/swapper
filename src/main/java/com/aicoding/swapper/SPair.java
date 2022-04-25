@@ -5,6 +5,7 @@ import javafx.util.Pair;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import reactor.util.function.Tuple2;
 
 import java.math.BigDecimal;
@@ -20,6 +21,7 @@ import java.math.BigInteger;
  */
 @Data
 @ToString
+@Slf4j
 @EqualsAndHashCode
 public class SPair {
     private String id;
@@ -27,33 +29,80 @@ public class SPair {
     private Token token1;
     private BigDecimal reserve0;
     private BigDecimal reserve1;
+    private BigInteger intReserve0;
+    private BigInteger intReserve1;
+    private BigDecimal token0Price;
+    private BigDecimal token1Price;
 
-    public static BigDecimal getAmountOut(BigDecimal amountIn,BigDecimal reserveIn,BigDecimal reserveOut)
+    public BigInteger calToken0Price()
     {
-        BigDecimal amountInWithFee = amountIn.multiply(BigDecimal.valueOf(997));
-        BigDecimal numerator = amountInWithFee.multiply(reserveOut);
-        BigDecimal denominator = reserveIn.multiply(BigDecimal.valueOf(1000)).add(amountInWithFee);
-        return numerator.divide(denominator,18,BigDecimal.ROUND_FLOOR);
+        return intReserve0.multiply(BigInteger.TEN.pow(token1.getDecimals())).divide(intReserve1);
     }
 
-    public static BigDecimal getAmountIn(BigDecimal amountOut,BigDecimal reserveIn,BigDecimal reserveOut)
+    public BigInteger calToken1Price()
     {
-        BigDecimal numerator = reserveIn.multiply(amountOut).multiply(BigDecimal.valueOf(1000));
-        BigDecimal denominator = reserveOut.subtract(amountOut).multiply(BigDecimal.valueOf(997));
-        //TODO 确认公式是否正确
-        return numerator.divide(denominator,18,BigDecimal.ROUND_FLOOR).add(BigDecimal.valueOf(1));
+        return intReserve1.multiply(BigInteger.TEN.pow(token0.getDecimals())).divide(intReserve0);
     }
 
-    public BigDecimal getAmountOut(String tokenIdIn,BigDecimal amountIn)
+    public Token getTokenById(String id)
     {
-        BigDecimal reserveIn = tokenIdIn.equals(token0.getId())?reserve0:reserve1;
-        BigDecimal reserveOut = tokenIdIn.equals(token0.getId())?reserve1:reserve0;
+        if(token0.getId().equals(id))
+        {
+            return token0;
+        }else if(token1.getId().equals(id))
+        {
+            return token1;
+        }
+        return null;
+    }
+
+    public BigInteger getReserveById(String id)
+    {
+        if(token0.getId().equals(id))
+        {
+            return intReserve0;
+        }else if(token1.getId().equals(id))
+        {
+            return intReserve1;
+        }
+        return null;
+    }
+
+    public void parseReserve()
+    {
+        intReserve0 = reserve0.multiply(BigDecimal.valueOf(10L).pow(token0.getDecimals())).toBigInteger();
+        intReserve1 = reserve1.multiply(BigDecimal.valueOf(10L).pow(token1.getDecimals())).toBigInteger();
+    }
+
+    public static BigInteger getAmountOut(BigInteger amountIn,BigInteger reserveIn,BigInteger reserveOut)
+    {
+        BigInteger amountInWithFee = amountIn.multiply(BigInteger.valueOf(997L));
+        BigInteger numerator = amountInWithFee.multiply(reserveOut);
+        BigInteger denominator = reserveIn.multiply(BigInteger.valueOf(1000L)).add(amountInWithFee);
+        return numerator.divide(denominator);
+    }
+
+    public static BigInteger getAmountIn(BigInteger amountOut,BigInteger reserveIn,BigInteger reserveOut)
+    {
+        if(amountOut.compareTo(reserveOut)>=0)
+        {
+            throw new RuntimeException("输出不能大于库存");
+        }
+        BigInteger numerator = reserveIn.multiply(amountOut).multiply(BigInteger.valueOf(1000));
+        BigInteger denominator = reserveOut.subtract(amountOut).multiply(BigInteger.valueOf(997));
+        return numerator.divide(denominator).add(BigInteger.valueOf(1));
+    }
+
+    public BigInteger getAmountOut(String tokenIdIn,BigInteger amountIn)
+    {
+        BigInteger reserveIn = tokenIdIn.equals(token0.getId())?intReserve0:intReserve1;
+        BigInteger reserveOut = tokenIdIn.equals(token0.getId())?intReserve1:intReserve0;
         return getAmountOut(amountIn,reserveIn,reserveOut);
     }
-    public BigDecimal getAmountIn(String tokenIdOut,BigDecimal amountOut)
+    public BigInteger getAmountIn(String tokenIdOut,BigInteger amountOut)
     {
-        BigDecimal reserveIn = tokenIdOut.equals(token0.getId())?reserve1:reserve0;
-        BigDecimal reserveOut = tokenIdOut.equals(token0.getId())?reserve0:reserve1;
+        BigInteger reserveIn = tokenIdOut.equals(token0.getId())?intReserve1:intReserve0;
+        BigInteger reserveOut = tokenIdOut.equals(token0.getId())?intReserve0:intReserve1;
         return getAmountIn(amountOut,reserveIn,reserveOut);
     }
 

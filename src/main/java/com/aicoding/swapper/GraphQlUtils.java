@@ -30,8 +30,9 @@ public class GraphQlUtils {
             .build();
 
     private static final String url ="https://api.thegraph.com/subgraphs/name/uniswap/uniswap-v2";
+    private static final String url2 ="https://api.thegraph.com/subgraphs/name/zippoxer/sushiswap-subgraph-fork";
 
-    public <T> T graphQLQuery(String ql,Object variables,Class<T> clazz)
+    public <T> T graphQLQuery(String ql,Object variables,Class<T> clazz,Boolean uniswap)
     {
         GraphQLRequest graphqlRequest = GraphQLRequest.builder()
                 .resource(ql)
@@ -40,7 +41,7 @@ public class GraphQlUtils {
 
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json;charset=utf-8;"),
                 JSONObject.toJSONString(graphqlRequest.getRequestBody()));
-        Request request = new Request.Builder().url(url).post(requestBody).build();
+        Request request = new Request.Builder().url(uniswap?url:url2).post(requestBody).build();
         return execute(request,clazz);
     }
 
