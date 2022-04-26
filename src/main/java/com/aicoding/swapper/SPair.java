@@ -34,15 +34,15 @@ public class SPair {
     private BigDecimal token0Price;
     private BigDecimal token1Price;
 
-    public BigInteger calToken0Price()
-    {
-        return intReserve0.multiply(BigInteger.TEN.pow(token1.getDecimals())).divide(intReserve1);
-    }
-
-    public BigInteger calToken1Price()
-    {
-        return intReserve1.multiply(BigInteger.TEN.pow(token0.getDecimals())).divide(intReserve0);
-    }
+//    public BigInteger calToken0Price()
+//    {
+//        return intReserve0.multiply(BigInteger.TEN.pow(token0.getDecimals())).divide(intReserve1);
+//    }
+//
+//    public BigInteger calToken1Price()
+//    {
+//        return intReserve1.multiply(BigInteger.TEN.pow(token1.getDecimals())).divide(intReserve0);
+//    }
 
     public Token getTokenById(String id)
     {

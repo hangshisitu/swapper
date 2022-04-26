@@ -46,6 +46,8 @@ class SwapperApplicationTests {
 	void testSqrt()
 	{
 		System.out.println(Utils.sqrt(BigInteger.valueOf(110)));
+		BigInteger temp = BigInteger.valueOf(110);
+		BigDecimal temp2 = new BigDecimal(temp);
 	}
 
 }
