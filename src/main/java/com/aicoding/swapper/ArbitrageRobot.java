@@ -31,17 +31,17 @@ public class ArbitrageRobot {
     /**
      * WETH,DAI,USDT,USDC,WBTC
      */
-    private final String[] stableCoin = new String[]{
-            "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
-    };
-
 //    private final String[] stableCoin = new String[]{
-//            "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
-//            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-//            "0xdAC17F958D2ee523a2206206994597C13D831ec7",
-//            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-//            "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"
+//            "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2"
 //    };
+
+    private final String[] stableCoin = new String[]{
+            "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+            "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+            "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+            "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599"
+    };
 
     public ArbitrageRobot(List<SPair> pairs)
     {
@@ -100,13 +100,14 @@ public class ArbitrageRobot {
             temp = UniswapV2LiquidityMathUtils.computeProfitMaximizingTrade(
                     truePair.getIntReserve0(),truePair.getIntReserve1(),pair.getIntReserve0(),pair.getIntReserve1());
         }
-        if(temp.getValue().compareTo(profit0?truePair.getIntReserve1():truePair.getIntReserve1())<0)
+        if(temp.getValue().compareTo(profit0?truePair.getIntReserve1():truePair.getIntReserve0())<0)
         {
             BigInteger debit = temp.getValue();
-            BigInteger needRepay = truePair.getAmountIn(pair.getToken1().getId(), debit);
-            BigInteger receive = pair.getAmountOut(pair.getToken1().getId(), debit);
+            BigInteger needRepay = truePair.getAmountIn(profit0?pair.getToken1().getId():pair.getToken0().getId(), debit);
+            BigInteger receive = pair.getAmountOut(profit0?pair.getToken1().getId():pair.getToken0().getId(), debit);
             if (receive.compareTo(needRepay) > 0) {
-                log.info("{}可套利: profit {}, {} - {}",swap, new BigDecimal(receive.subtract(needRepay)).divide(BigDecimal.TEN.pow(18)),
+                log.info("{}可套利: profit {}, {} - {}",swap, new BigDecimal(receive.subtract(needRepay)).divide(
+                        BigDecimal.TEN.pow(profit0?pair.getToken0().getDecimals():pair.getToken1().getDecimals())),
                         pair.getToken0().getSymbol(),
                         pair.getToken1().getSymbol());
             }
@@ -115,7 +116,7 @@ public class ArbitrageRobot {
 
     public void crossArbitrageCal(List<SPair> sushiParis)
     {
-        String weth = stableCoin[0].toLowerCase();
+        String weth = stableCoin[2].toLowerCase();
         pairs.stream().filter(p -> p.getToken0().getId().equals(weth) ||p.getToken1().getId().equals(weth)).forEach(p -> {
             Optional<SPair> externalPair = sushiParis.stream().filter(
                     s -> s.getToken0().equals(p.getToken0()) && s.getToken1().equals(p.getToken1())).findAny();
@@ -126,38 +127,6 @@ public class ArbitrageRobot {
                     SPair sushiPair = externalPair.get();
                     executeArbitrage(sushiPair,p,p.getToken0().getId().equals(weth),"uniswap");
                     executeArbitrage(p,sushiPair,sushiPair.getToken0().getId().equals(weth),"sushiswap");
-
-//                    Pair<Boolean,BigInteger> temp = UniswapV2LiquidityMathUtils.computeProfitMaximizingTrade(
-//                            sushiPair.getIntReserve1(),sushiPair.getIntReserve0(),p.getIntReserve1(),p.getIntReserve0());
-//                    if(temp.getKey())
-//                    {
-//                        if(temp.getValue().compareTo(sushiPair.getIntReserve1())<0) {
-//                            BigInteger debit = temp.getValue();
-//                            BigInteger needRepay = sushiPair.getAmountIn(p.getToken1().getId(), debit);
-//                            BigInteger receive = p.getAmountOut(p.getToken1().getId(), debit);
-//                            if (receive.compareTo(needRepay) > 0) {
-//                                log.info("uniswap可套利: profit {}, {} - {}", new BigDecimal(receive.subtract(needRepay)).divide(BigDecimal.TEN.pow(18)), p.getToken0().getSymbol(),
-//                                        p.getToken1().getSymbol());
-//                            }
-//                        }
-//                    }
-//                    temp =  UniswapV2LiquidityMathUtils.computeProfitMaximizingTrade(
-//                            p.getIntReserve1(),p.getIntReserve0(),sushiPair.getIntReserve1(),sushiPair.getIntReserve0());
-//                    if(temp.getKey())
-//                    {
-//                        if(temp.getValue().compareTo(p.getIntReserve1())<0)
-//                        {
-//                            BigInteger debit = temp.getValue();
-//                            BigInteger needRepay = p.getAmountIn(p.getToken1().getId(),debit);
-//                            BigInteger receive = sushiPair.getAmountOut(p.getToken1().getId(),debit);
-//                            if(receive.compareTo(needRepay)>0)
-//                            {
-//                                log.info("sushiswap可套利: profit {}, {} - {}",new BigDecimal(receive.subtract(needRepay)).divide(BigDecimal.TEN.pow(18)),p.getToken0().getSymbol(),
-//                                        p.getToken1().getSymbol());
-//                            }
-//                        }
-//
-//                    }
                 }else
                 {
                     log.info("库存为0 pair{}",p);
